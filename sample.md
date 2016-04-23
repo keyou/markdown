@@ -18,9 +18,14 @@ Feel free to fork this style guide, or better yet, send [Pull Requests][33] this
 
 ## Table of Contents
 
+* [Modules](#modules)
+* [Strict Mode](#strict-mode)
+* [Spacing](#spacing)
+
 1. [Modules](#modules)
 2. [Strict Mode](#strict-mode)
 3. [Spacing](#spacing)
+
 
 ## Modules
 
