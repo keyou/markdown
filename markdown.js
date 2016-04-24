@@ -11,15 +11,23 @@ var title = [/^\s*#{1,6}\s*([\S\s]*)$/, /^\s*([\S\s]*?)\n[-=]{4,}\s*$/]; // titl
 var list = /^\s*([\da-zA-Z\*>])\.{0,1} \s*(.*)$/mg;// list
 var listSplit = /^\s*([\da-zA-Z\*>])\.{0,1} /m;
 
-var style = /([_*`]{1,2})(.*?[^\\])(\1)/g; // inlines
+var style = /([_*`]{1,2})(.*?[^\\])(\1)/mg; // inlines
 var styleSplit = /^[_*`]{1,2}$/;
+
+var linkRgx = /\[([^\[\]]*)\](\((?:[^\(\)]|\(.*?\))*?\)|\[[^\[\]]*\])/mg;
 
 var spaceData = /^\s*$/;
 
 function parseContent(p) {
     var para = [];
+    var rlt;
 
-    var rlt = p.split(style);
+    while((rlt = linkRgx.exec(p))){
+        
+        console.log("Link: "+rlt[0]);
+    }
+
+    rlt = p.split(style);
     if (rlt) {
         var isSpliting = false;
         var lastSplit;
@@ -72,13 +80,6 @@ function parse(p) {
         return;
     }
 
-    // var isOK = false;
-    // while ((rlt = list.exec(p))) {
-    //     console.log("List: " + rlt[1] + ". " + rlt[2]);
-    //     isOK = true;
-    // }
-    // if (isOK) return;
-
     rlt = code.exec(p);
     if (rlt) {
         console.log("PPara: " + rlt[1] + "\n" + rlt[2]);
@@ -86,15 +87,6 @@ function parse(p) {
     }
 
     parseContent(p);
-    //console.log("TODO: " + p);
-
-    // rlt = p.match(list)
-    // if(rlt){
-    //     rlt.forEach(function(element) {
-    //         console.log("List: "+element[1]);
-    //     }, rlt);
-    // }
-
 }
 
 function main(params) {
@@ -103,7 +95,6 @@ function main(params) {
 
     for (var i = 0; i < data.length; i++) {
         var d = data[i];
-        //console.log(para);
         if (preSplit.test(d)) {
             console.log("=====================");
             parse(d);
