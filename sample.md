@@ -3,7 +3,8 @@
 dsalgdasg
 ----------------------
 
-> A **quality conscious** and _organic_ JavaScript quality guide
+> A **quality conscious** and _organic_ 
+JavaScript quality guide
 
 This style guide aims to provide the ground rules
  for an application's JavaScript code, such that it's highly readable and consistent across different developers on a team. The focus is put on quality and coherence across the different pieces of your application.
@@ -18,7 +19,8 @@ Feel free to fork this style guide, or better yet, send [Pull Requests][33] this
 
 ## Table of Contents
 
-* [Modules](#modules)
+* [Modules](#modules)aaaa bbb
+ccc eee fff
 * [Strict Mode](#strict-mode)
 * [Spacing](#spacing)
 
@@ -62,3 +64,6 @@ Spacing doesn't just entail tabbing, but also the spaces before, after, and in b
   [6]: http://dailyjs.com/2012/12/24/817-javascript-survey-results
   [7]: http://blog.izs.me/post/2353458699/an-open-letter-to-javascript-leaders-regarding
 
+
+  
+  

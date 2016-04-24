@@ -2,19 +2,49 @@ console.log("markdown.js");
 var fs = require("fs");
 var data = fs.readFileSync("sample.md", "utf-8");
 
+
+var preSplit = /\n*(`{3,}.*\n[\S\s]*?\n`{3,})\n*/g; // presplit
+
+var code = /\n*`{3,}(.*)\n([\S\s]*)?\n`{3,}\n*/g; // code 
 var paragraph = /\n(?:\s*\n)+|  \n(?:\s*\n)*/g; // paragraph
 var title = [/^\s*#{1,6}\s*([\S\s]*)$/, /^\s*([\S\s]*?)\n[-=]{4,}\s*$/]; // title
-//var list = /^\s*\* \s*(.*)$/mg;// no sort list
-var sortList = /^\s*([\da-zA-Z\*>])\.{0,1} \s*(.*)$/mg;// sort list
-var style = [/\*[^ ]*[^ ]\*/]; // inlines
+var list = /^\s*([\da-zA-Z\*>])\.{0,1} \s*(.*)$/mg;// list
+var listSplit = /^\s*([\da-zA-Z\*>])\.{0,1} /m; 
 
-var code = /\n*`{3,}(.*)\n([\S\s]*)?\n`{3,}\n*/g;
+var style = /([_*`]{1,2})(.*?[^\\])(\1)/g; // inlines
+var styleSplit = /^[_*`]{1,2}$/;
 
-var preSplit = /\n(`{3,}.*)\n/g;
+function parseContent(p) {
+    var para;
 
-var preSplitA = /\n*(`{3,}.*\n[\S\s]*?\n`{3,})\n*/g;
+    var rlt = p.split(style);
+    if (rlt) {
+        var isSpliting = false;
+        var lastSplit;
+        para = rlt.map(function (e) {
+            if (styleSplit.test(e)) {
+                isSpliting = !isSpliting;
+                lastSplit = e;
+                return null;
+            }
+            else if(e!=""){
+                var tmp = {};
+                if (isSpliting) {
+                    tmp.split = {delim:lastSplit,str:e};
+                }
+                else {
+                    tmp.str = e;
+                }
+                console.log(tmp);
+                return tmp;
+            }
+        }, this);
 
-var delimiter = /^\s*(`{3,})*.$/;
+    }
+
+    //console.log(para);
+
+}
 
 function parse(p) {
     var rlt = p.match(title[0]);
@@ -22,21 +52,29 @@ function parse(p) {
         console.log("Title: " + rlt[1]);
         return;
     }
-    
+
     rlt = p.match(title[1]);
     if (rlt) {
         console.log("Title: " + rlt[1]);
         return;
     }
 
-    while ((rlt = sortList.exec(p))) {
+    //rlt = list.split(listSplit)
+    var isOK = false;
+    while ((rlt = list.exec(p))) {
         console.log("List: " + rlt[1] + ". " + rlt[2]);
+        isOK = true;
     }
+    if (isOK) return;
 
     rlt = code.exec(p);
     if (rlt) {
         console.log("PPara: " + rlt[1] + "\n" + rlt[2]);
+        return;
     }
+
+    parseContent(p);
+    //console.log("TODO: " + p);
 
     // rlt = p.match(list)
     // if(rlt){
@@ -47,23 +85,28 @@ function parse(p) {
 
 }
 
-data = data.replace(/\r\n/, "\n");
-data = data.split(preSplitA);
+function main(params) {
+    data = data.replace(/\r\n/, "\n");
+    data = data.split(preSplit);
 
-for (var i = 0; i < data.length; i++) {
-    var d = data[i];
-    //console.log(para);
-    if(!preSplitA.test(d)){
-        var paras = d.split(paragraph);
-        paras.forEach(function(e) {
+    for (var i = 0; i < data.length; i++) {
+        var d = data[i];
+        //console.log(para);
+        if (preSplit.test(d)) {
             console.log("=====================");
-            parse(e);
-        }, paras);
-    }
-    else{
-        console.log("=====================");
-        parse(d);
+            parse(d);
+        }
+        else{
+            var paras = d.split(paragraph);
+            paras.forEach(function (e) {
+                if(/^\s*$/.test(e)) return;
+                console.log("=====================");
+                parse(e);
+            }, paras);
+        }
     }
 }
+
+main(data);
 
 //paragraph.match()
