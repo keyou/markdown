@@ -1,0 +1,52 @@
+<h1>function qualityGuide () {</h1>
+
+<h2>dsalgdasg</h2>
+
+<blockquote><p>A <strong>quality conscious</strong> and <em>organic</em> JavaScript quality guide</p></blockquote>
+
+<p>This style guide aims to provide the ground rules
+ for an application&#39;s JavaScript code, such that it&#39;s highly readable and consistent across different developers on a team. The focus is put on quality and coherence across the different pieces of your application.</p>
+
+<h2>Goal</h2>
+
+<p>These suggestions aren&#39;t set in stone, they aim to provide a baseline you can use in order to write more consistent codebases. To maximize effectiveness, share the styleguide among your co-workers and attempt to enforce it. Don&#39;t become obsessed about code style, as it&#39;d be fruitless and counterproductive. Try and find the sweet spot that makes everyone in the team comfortable developing for your codebase, while not feeling frustrated that their code always fails automated style checking because they added a single space where they weren&#39;t supposed to. It&#39;s a thin line, but since it&#39;s a very personal line I&#39;ll leave it to you to do the drawing.</p>
+
+<blockquote><p>Use together with [bevacqua/css][32] for great good!</p></blockquote>
+
+<p>Feel free to fork this style guide, or better yet, send [Pull Requests][33] this way!</p>
+
+<h2>Table of Contents</h2>
+
+<ul><li><a href="#modules">Modules</a></li><li><a href="#strict-mode">Strict Mode</a></li><li><p><a href="#spacing">Spacing</a></p></li><li><p><a href="#modules">Modules</a></p></li><li><a href="#strict-mode">Strict Mode</a></li><li><a href="#spacing">Spacing</a></li></ul>
+
+<h2>Modules</h2>
+
+<p>This style guide assumes you&#39;re using a module system such as [CommonJS][1], [AMD][2], [ES6 Modules][3], or any other kind of module system. Modules systems provide individual scoping, avoid leaks to the <code>global</code> object, and improve code base organization by <strong>automating dependency graph generation</strong>, instead of having to resort to manually creating multiple <code>&lt;script&gt;</code> tags.</p>
+
+<p>Module systems also provide us with dependency injection patterns, which are crucial when it comes to testing individual components in isolation.</p>
+
+<h2>Strict Mode</h2>
+
+<p><strong>Always</strong> put [`&#39;use strict&#39;;`][4] at the top of your modules. Strict mode allows you to catch nonsensical behavior, discourages poor practices, and <em>is faster</em> because it allows compilers to make certain assumptions about your code.</p>
+
+<h2>Spacing</h2>
+
+<p>Spacing must be consistent across every file in the application. To this end, using something like <a href="http://editorconfig.org"><code>.editorconfig</code></a> configuration files is highly encouraged. Here are the defaults I suggest to get started with JavaScript indentation.</p>
+
+<p><code></code>`ini</p>
+
+<h1>editorconfig.org</h1>
+
+<p>root = true</p>
+
+<p>[*]
+indent<em>style = space
+indent</em>size = 2</p>
+
+<p>[*.md]
+trim<em>trailing</em>whitespace = false
+<code></code>`</p>
+
+<p>Settling for either tabs or spaces is up to the particularities of a project, but I recommend using 2 spaces for indentation. The <code>.editorconfig</code> file can take care of that for us and everyone would be able to create the correct spacing by pressing the tab key.</p>
+
+<p>Spacing doesn&#39;t just entail tabbing, but also the spaces before, after, and in between arguments of a function declaration. This kind of spacing is <strong>typically highly irrelevant to get right</strong>, and it&#39;ll be hard for most teams to even arrive at a scheme that will satisfy everyone.</p>

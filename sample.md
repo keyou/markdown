@@ -22,6 +22,7 @@ Feel free to fork this style guide, or better yet, send [Pull Requests][33] this
 * [Strict Mode](#strict-mode)
 * [Spacing](#spacing)
 
+
 1. [Modules](#modules)
 2. [Strict Mode](#strict-mode)
 3. [Spacing](#spacing)
