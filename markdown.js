@@ -9,34 +9,35 @@ var code = /\n*`{3,}(.*)\n([\S\s]*)?\n`{3,}\n*/g; // code
 var paragraph = /\n(?:\s*\n)+|  \n(?:\s*\n)*/g; // paragraph
 var title = [/^\s*#{1,6}\s*([\S\s]*)$/, /^\s*([\S\s]*?)\n[-=]{4,}\s*$/]; // title
 var list = /^\s*([\da-zA-Z\*>])\.{0,1} \s*(.*)$/mg;// list
-var listSplit = /^\s*([\da-zA-Z\*>])\.{0,1} /m; 
+var listSplit = /^\s*([\da-zA-Z\*>])\.{0,1} /m;
 
 var style = /([_*`]{1,2})(.*?[^\\])(\1)/g; // inlines
 var styleSplit = /^[_*`]{1,2}$/;
 
+var spaceData = /^\s*$/;
+
 function parseContent(p) {
-    var para;
+    var para = [];
 
     var rlt = p.split(style);
     if (rlt) {
         var isSpliting = false;
         var lastSplit;
-        para = rlt.map(function (e) {
+        rlt.forEach(function (e) {
             if (styleSplit.test(e)) {
                 isSpliting = !isSpliting;
                 lastSplit = e;
-                return null;
             }
-            else if(e!=""){
+            else if (e != "") {
                 var tmp = {};
                 if (isSpliting) {
-                    tmp.split = {delim:lastSplit,str:e};
+                    tmp.split = { delim: lastSplit, str: e };
                 }
                 else {
                     tmp.str = e;
                 }
                 console.log(tmp);
-                return tmp;
+                para.push(tmp);
             }
         }, this);
 
@@ -59,13 +60,24 @@ function parse(p) {
         return;
     }
 
-    //rlt = list.split(listSplit)
-    var isOK = false;
-    while ((rlt = list.exec(p))) {
-        console.log("List: " + rlt[1] + ". " + rlt[2]);
-        isOK = true;
+    rlt = p.split(listSplit)
+    if (rlt.length > 2) {
+        var l = {};
+        l.delim = rlt[1];
+        l.list = [];
+        for (var i = 2; i < rlt.length; i += 2) {
+            l.list.push(rlt[i]);
+        }
+        console.log("List: " + l.delim + "\n-- " + l.list.join("-- "));
+        return;
     }
-    if (isOK) return;
+
+    // var isOK = false;
+    // while ((rlt = list.exec(p))) {
+    //     console.log("List: " + rlt[1] + ". " + rlt[2]);
+    //     isOK = true;
+    // }
+    // if (isOK) return;
 
     rlt = code.exec(p);
     if (rlt) {
@@ -96,10 +108,10 @@ function main(params) {
             console.log("=====================");
             parse(d);
         }
-        else{
+        else {
             var paras = d.split(paragraph);
             paras.forEach(function (e) {
-                if(/^\s*$/.test(e)) return;
+                if (spaceData.test(e)) return;
                 console.log("=====================");
                 parse(e);
             }, paras);
