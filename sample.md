@@ -3,7 +3,7 @@
 dsalgdasg
 ----------------------
 
-> A **quality conscious** and _organic_ 
+> A **`quality conscious`** and _organic_ 
 JavaScript quality guide
 
 This style guide aims to provide the ground rules
