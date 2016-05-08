@@ -1,4 +1,5 @@
 console.log("markdown.js");
+require("./tools.js");
 
 var fs = require("fs");
 var data = fs.readFileSync("sample.md", "utf-8");
@@ -13,39 +14,53 @@ var paragraph = /\n(?:\s*\n)+|  \n(?:\s*\n)*/g; // paragraph
 var titleRgxs = [/^\s*#{1,6}\s*([\S\s]*)$/, /^\s*([\S\s]*?)\n[-=]{4,}\s*$/]; // title
 var listRgx = /^([\*>])\.{0,1} (.*(?:\n(?!\1).+)*)$/mg;// list
 var sortListRgx = /^(\d)\.{0,1} (.*(?:\n(?!\d).+)*)$/mg;// sort list
+var refRgx = /^\s*\[(.*?)\]:\s*(.*)\s*$/mg; // ref list
 //var listSplit = /^\s*([\da-zA-Z\*>])\.{0,1} /m;
 
-var styleRgx = /([_*`]{1,2})(.*?[^\\\n])\1/mg; // inlines
+var styleRgx = /([_*`]{1,2})([\S\s]*?[^\\])\1/g; // inlines
+var linkRgx = /\[([^\[\]]*)\](\((?:[^\(\)]|\(.*?\))*?\)|\[[^\[\]]*\])/g;
+var dataRgx = new RegExp(styleRgx.source +"|"+ linkRgx.source,"g"); 
+
 var styleSplit = /^[_*`]{1,2}$/;
-
-var linkRgx = /\[([^\[\]]*)\](\((?:[^\(\)]|\(.*?\))*?\)|\[[^\[\]]*\])/mg;
-
-var refRgx = /^\s*\[(.*?)\]:\s*(.*)\s*$/mg;
 
 var spaceData = /^\s*$/;
 
-function parseStyle(p) {
-    var style = [];
+var cssDic = {"**":"strong","*":"em","__":"strong","_":"em","`":"code","``":"code"};
+
+function _parseStyle(p) {
     var rlt;
-    
-    while((rlt = linkRgx.exec(p))){
-        style.push({type:"link",index:rlt.index,length:rlt[0].length});
-        console.log("Link: "+rlt[0]);
-    }
-    
-    
     while((rlt = styleRgx.exec(p))){
-        style.push({type:"css",index:rlt.index,length:rlt[0].length});
+        styles.push({type:"css",index:rlt.index,length:rlt[0].length});
         console.log("Style: "+rlt[1]+" "+rlt[2]);
+        
     }
-    
-    while((rlt = refRgx.exec(p))){
-        style.push({type:"ref",index:rlt.index,length:rlt[0].length});
-        console.log("Ref: "+rlt[1]+" "+rlt[2]);
+}
+
+function analyseData(p) {
+    var datas = [];
+    var rlt;
+    var data = p;
+    dataRgx.lastIndex = 0;
+    if((rlt = dataRgx.exec(data))){
+        if(rlt.index>0){
+            datas.push(data.substr(0,rlt.index));
+        }
+        data = data.substr(dataRgx.lastIndex);
+        if(rlt[1]){
+            datas.push({type:"css",key:rlt[1],value:analyseData(rlt[2])});
+        }
+        else if(rlt[3]){
+            datas.push({type:"link",key:rlt[4],value:analyseData(rlt[3])});
+        }
+        if(data){
+            datas = datas.concat(analyseData(data));
+        }
     }
-    
-    //console.log(para);
-    return style;
+    else{
+        datas = p;
+    }
+
+    return datas;
 }
 
 function parse2Json(p) {
@@ -58,116 +73,175 @@ function parse2Json(p) {
     if (!isOK&&rlt) {
         console.log("Title: " + rlt[1]);
         pa.type = "title";
-        pa.data = rlt[1]; 
-        pa.style = parseStyle(rlt[1]);
+        //pa.data = rlt[1]; 
+        pa.data = analyseData(rlt[1]);
         isOK = true;
     }
 
-    rlt = p.match(titleRgxs[1]);
-    if (!isOK&&rlt) {
+    if (!isOK&&(rlt = p.match(titleRgxs[1]))) {
         console.log("Title: " + rlt[1]);
         pa.type = "title";
-        pa.data = rlt[1]; 
-        pa.style = parseStyle(rlt[1]);
+        //pa.data = rlt[1]; 
+        pa.data = analyseData(rlt[1]);
         isOK = true;
     }
     
-    rlt = listRgx.test(p);
-    if(!isOK&&rlt){
+    if(!isOK&&(rlt = listRgx.exec(p))){
         pa.type = "list";
+        pa.ref = rlt[1];
         pa.data = [];
         listRgx.lastIndex = 0;
         while((rlt = listRgx.exec(p))){
             console.log("List: "+rlt[1]+" "+rlt[2]);
-            var tmp = {};
-            tmp.key = rlt[1];
-            tmp.value = rlt[2];
-            tmp.style = parseStyle(rlt[2]);
-            pa.data.push(tmp);
+            //var tmp = {};
+            //tmp.key = rlt[1];
+            //tmp.value = rlt[2];
+            //tmp.style = analyseData(rlt[2]);
+            pa.data.push(analyseData(rlt[2]));
         }
         isOK = true;
     }
 
-    rlt = sortListRgx.test(p);
-    if(!isOK&&rlt){
+    if(!isOK&&(rlt = sortListRgx.exec(p))){
         pa.type = "sortlist";
+        pa.ref = rlt[1];
         pa.data = [];
-        listRgx.lastIndex = 0;
+        sortListRgx.lastIndex = 0;
         while((rlt = sortListRgx.exec(p))){
             console.log("SortList: "+rlt[1]+" "+rlt[2]);
-            var tmp = {};
-            tmp.key = rlt[1];
-            tmp.value = rlt[2];
-            tmp.style = parseStyle(rlt[2]);
-            pa.data.push(tmp);
+            //var tmp = {};
+            //tmp.key = rlt[1];
+            //tmp.value = rlt[2];
+            //tmp.style = analyseData(rlt[2]);
+            pa.data.push(analyseData(rlt[2]));
         }
         isOK = true;
     }
 
+    if(!isOK&&(rlt=refRgx.test(p))){
+        pa.type = "ref";
+        pa.data = [];
+        refRgx.lastIndex = 0;
+        while(rlt = refRgx.exec(p)){
+            console.log("Ref: "+rlt[1]+" "+rlt[2]);
+            var tmp = {};
+            tmp.ref = rlt[1];
+            tmp.data = rlt[2];
+            pa.data.push(tmp);
+        }
+        isOK = true;
+    }
     
-    rlt = codeRgx.exec(p);
-    if (!isOK&&rlt) {
+    if (!isOK&&(rlt=codeRgx.exec(p))) {
         console.log("Code: " + rlt[1] + "\n" + rlt[2]);
         pa.type = "code";
         pa.data = rlt[2];
-        pa.lan = rlt[1];
+        pa.ref = rlt[1];
         isOK = true;
     }
     
     if(!isOK){
         pa.type = "plain";
-        pa.data = p;
-        pa.style = parseStyle(p);
+        //pa.data = p;
+        pa.data = analyseData(p);
     }
 
-    console.info(pa);
+    console.log(JSON.stringify(pa));
     return pa;
 }
 
-function parseHtml(data,styles) {
-    styles.sort(function(l,r){return l.index>r.index?1:-1;});
-    for (var i = 0; i < styles.length; i++) {
-        var style = styles[i];
-        switch(style.type){
-            case "link":
+function parseHtml(datas) {
+    var html = "";
+    if(datas instanceof Array){
+        for (var i = 0; i < datas.length; i++) {
+            var data = datas[i];
+            if(typeof data === "string"){
+                html += data; 
+            }
+            else{
+                switch(data.type){
+                    case "link":{
+                        html += "<a href='{0}'>{1}</a>".format(data.key,parseHtml(data.value));
+                        break;
+                    }
+                    case "css":{
+                        html += "<{0}>{1}</{0}>".format(cssDic[data.key],parseHtml(data.value));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    else{
+        html = datas;
+    }
+    return html;
+}
+
+function json2Html(p) {
+    var html = "";
+    switch(p.type){
+        case "title":{
+            html += "<h1>{0}</h1>".format(parseHtml(p.data));
             break;
-            case "css":
+        }
+        case "sortlist":
+        case "list":{
+            html += "<ol>"
+            for (var i = 0; i < p.data.length; i++) {
+                var data = p.data[i];
+                html += "<li>{0}</li>".format(parseHtml(data));
+            }
+            html += "</ol>";
             break;
-            case "ref":
+        }
+        case "code":{
+            html += "<pre>{0}</pre>".format(p.data);
+            break;
+        }
+        case "":{
+            break;
+        }
+        case "":{
             break;
         }
     }
     
-}
-
-function json2Html(p) {
-    var pHtml = "";
-    if(p.type == "title"){
-        pHtml += "<h1>"+parseHtml(p.data,p.styles)+"</h1>";
-    }
-    
-    return pHtml;
+    console.log("------------------------------------");
+    console.log(html);
+    return html;
 }
 
 function main(params) {
     data = data.replace(/\r\n/, "\n");
     data = data.split(preSplit);
-
+    var jsons = [];
+    
     for (var i = 0; i < data.length; i++) {
         var d = data[i];
         if (preSplit.test(d)) {
             console.log("=====================");
-            parse2Json(d);
+            jsons.push(parse2Json(d));
+            json2Html(jsons[jsons.length-1]);
         }
         else {
             var paras = d.split(paragraph);
             paras.forEach(function (e) {
                 if (spaceData.test(e)) return;
                 console.log("=====================");
-                parse2Json(e);
+                jsons.push(parse2Json(e));
+                json2Html(jsons[jsons.length-1]);
             }, paras);
         }
     }
+    
+    var html = "";
+    for(var i = 0; i < jsons.length; i++){
+        var json = jsons[i];
+        html += json2Html(json) + "\n\n\n";
+    }
+    fs.writeFileSync("rlt.html",html);
+    console.log(html);
 }
 
 main(data);

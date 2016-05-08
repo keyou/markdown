@@ -1,4 +1,4 @@
-# function qualityGuide () {
+# function *qualityGuide* () 
 
 dsalgdasg
 ----------------------
@@ -6,7 +6,7 @@ dsalgdasg
 > A **`quality conscious`** and _organic_ 
 JavaScript quality guide
 
-This style guide aims to provide the ground rules
+This style[baidu](http://baidu.com) guide aims to provide the ground rules
  for an application's JavaScript code, such that it's highly readable and consistent across different developers on a team. The focus is put on quality and coherence across the different pieces of your application.
 
 ## Goal
@@ -57,6 +57,16 @@ trim_trailing_whitespace = false
 ```
 
 Settling for either tabs or spaces is up to the particularities of a project, but I recommend using 2 spaces for indentation. The `.editorconfig` file can take care of that for us and everyone would be able to create the correct spacing by pressing the tab key.
+
+```c#
+
+nihao1
+
+nihao2
+
+nihao3
+
+```
 
 Spacing doesn't just entail tabbing, but also the spaces before, after, and in between arguments of a function declaration. This kind of spacing is **typically highly irrelevant to get right**, and it'll be hard for most teams to even arrive at a scheme that will satisfy everyone.
 
