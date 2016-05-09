@@ -11,14 +11,14 @@ var preSplit = /\n*(`{3,}.*\n[\S\s]*?\n`{3,})\n*/g; // presplit
 
 var codeRgx = /\n*`{3,}(.*)\n([\S\s]*)?\n`{3,}\n*/g; // code 
 var paragraph = /\n(?:\s*\n)+|  \n(?:\s*\n)*/g; // paragraph
-var titleRgxs = [/^\s*#{1,6}\s*([\S\s]*)$/, /^\s*([\S\s]*?)\n[-=]{4,}\s*$/]; // title
+var titleRgxs = [/^\s*(#{1,6})\s*([\S\s]*)$/, /^\s*([\S\s]*?)\n[-=]{4,}\s*$/]; // title
 var listRgx = /^([\*>])\.{0,1} (.*(?:\n(?!\1).+)*)$/mg;// list
 var sortListRgx = /^(\d)\.{0,1} (.*(?:\n(?!\d).+)*)$/mg;// sort list
 var refRgx = /^\s*\[(.*?)\]:\s*(.*)\s*$/mg; // ref list
 //var listSplit = /^\s*([\da-zA-Z\*>])\.{0,1} /m;
 
 var styleRgx = /([_*`]{1,2})([\S\s]*?[^\\])\1/g; // inlines
-var linkRgx = /\[([^\[\]]*)\](\((?:[^\(\)]|\(.*?\))*?\)|\[[^\[\]]*\])/g;
+var linkRgx = /!{0,1}\[([^\[\]]*)\](\((?:[^\(\)]|\(.*?\))*?\)|\[[^\[\]]*\])/g; // link and image
 var dataRgx = new RegExp(styleRgx.source +"|"+ linkRgx.source,"g"); 
 
 var styleSplit = /^[_*`]{1,2}$/;
@@ -50,7 +50,12 @@ function analyseData(p) {
             datas.push({type:"css",key:rlt[1],value:analyseData(rlt[2])});
         }
         else if(rlt[3]){
-            datas.push({type:"link",key:rlt[4],value:analyseData(rlt[3])});
+            if(rlt[0].startWith("!")){
+                datas.push({type:"image",key:rlt[4],value:analyseData(rlt[3])});
+            }
+            else{
+                datas.push({type:"link",key:rlt[4],value:analyseData(rlt[3])});
+            }
         }
         if(data){
             datas = datas.concat(analyseData(data));
@@ -73,15 +78,15 @@ function parse2Json(p) {
     if (!isOK&&rlt) {
         console.log("Title: " + rlt[1]);
         pa.type = "title";
-        //pa.data = rlt[1]; 
-        pa.data = analyseData(rlt[1]);
+        pa.ref = rlt[1]; 
+        pa.data = analyseData(rlt[2]);
         isOK = true;
     }
 
     if (!isOK&&(rlt = p.match(titleRgxs[1]))) {
         console.log("Title: " + rlt[1]);
         pa.type = "title";
-        //pa.data = rlt[1]; 
+        pa.ref = "#"; 
         pa.data = analyseData(rlt[1]);
         isOK = true;
     }
@@ -125,8 +130,8 @@ function parse2Json(p) {
         while(rlt = refRgx.exec(p)){
             console.log("Ref: "+rlt[1]+" "+rlt[2]);
             var tmp = {};
-            tmp.ref = rlt[1];
-            tmp.data = rlt[2];
+            tmp.key = rlt[1];
+            tmp.value = rlt[2];
             pa.data.push(tmp);
         }
         isOK = true;
@@ -158,7 +163,25 @@ function escapeHTML( text ) {
              .replace( /'/g, "&#39;" );
 }
 
-function parseHtml(datas) {
+function escapeLink(key,refs) {
+    var type = key.substr(0,1);
+    var key = key.substr(1,key.length-2);
+    refs = refs || [];
+    if(type == "("){
+        return key;
+    }
+    if(type == "["){
+        for (var i = 0; i < refs.length; i++) {
+            var refobj = refs[i];
+            if(refobj.key == key){
+                return refobj.value;
+            }
+        }
+    }
+    return "#"+key;
+}
+
+function parseHtml(datas,refs) {
     var html = "";
     if(datas instanceof Array){
         for (var i = 0; i < datas.length; i++) {
@@ -168,8 +191,12 @@ function parseHtml(datas) {
             }
             else{
                 switch(data.type){
+                    case "image":{
+                        html += '<img src="{0}" alt="{1}" />'.format(escapeLink(data.key,refs),data.value)
+                        break;
+                    }
                     case "link":{
-                        html += "<a href='{0}'>{1}</a>".format(data.key,parseHtml(data.value));
+                        html += "<a href='{0}'>{1}</a>".format(escapeLink(data.key,refs),parseHtml(data.value));
                         break;
                     }
                     case "css":{
@@ -186,11 +213,12 @@ function parseHtml(datas) {
     return html;
 }
 
-function json2Html(p) {
+function json2Html(p,refs) {
     var html = "";
+    
     switch(p.type){
         case "title":{
-            html += "<h1>{0}</h1>".format(parseHtml(p.data));
+            html += "<h{0}>{1}</h{0}>".format(p.ref.length,parseHtml(p.data,refs));
             break;
         }
         case "sortlist":
@@ -198,17 +226,17 @@ function json2Html(p) {
             html += "<ol>"
             for (var i = 0; i < p.data.length; i++) {
                 var data = p.data[i];
-                html += "<li>{0}</li>".format(parseHtml(data));
+                html += "<li>{0}</li>".format(parseHtml(data,refs));
             }
             html += "</ol>";
             break;
         }
         case "code":{
-            html += "<pre>{0}</pre>".format(p.data);
+            html += "<pre><code>{0}</code></pre>".format(escapeHTML(p.data));
             break;
         }
         case "plain":{
-            html += "<p>{0}</p>".format(parseHtml(p.data));
+            html += "<p>{0}</p>".format(parseHtml(p.data,refs));
             break;
         }
         case "":{
@@ -231,26 +259,42 @@ function main(params) {
         if (preSplit.test(d)) {
             console.log("=====================");
             jsons.push(parse2Json(d));
-            json2Html(jsons[jsons.length-1]);
+            //json2Html(jsons[jsons.length-1]);
         }
         else {
             var paras = d.split(paragraph);
             paras.forEach(function (e) {
                 if (spaceData.test(e)) return;
                 console.log("=====================");
-                jsons.push(parse2Json(e));
-                json2Html(jsons[jsons.length-1]);
+                var js = parse2Json(e);
+                if(js.type&&js.type=="ref"){
+                    jsons.unshift(js);
+                }
+                else{
+                    jsons.push(js);
+                }
+                //json2Html(jsons[jsons.length-1]);
             }, paras);
         }
     }
     
     var html = "";
+    var refs = [];
     for(var i = 0; i < jsons.length; i++){
         var json = jsons[i];
-        html += json2Html(json) + "\n\n\n";
+        if(json.type&&json.type == "ref"){
+            var d = json.data;
+            refs = refs.concat(d);
+        }
+        else{
+            html += json2Html(json,refs)+"\n";
+        }
         console.log(json);
     }
-    fs.writeFileSync("rlt.html",html);
+    
+    var htmlTemplate = fs.readFileSync("result.html", "utf-8");
+    
+    fs.writeFileSync("rlt.html",htmlTemplate.format(html));
     console.log(html);
 }
 
