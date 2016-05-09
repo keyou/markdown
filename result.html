@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title></title>
-        <meta charset="UTF-8">
-        <link href="css/style.css" rel="stylesheet">
-    </head>
-    <body>
-    <h1>function <em>qualityGuide</em> () </h1>
+<h1>function <em>qualityGuide</em> () </h1>
 
 
 <h1>dsalgdasg</h1>
@@ -16,50 +8,51 @@
 JavaScript quality guide</li></ol>
 
 
-
+<p>This style<a href='(http://baidu.com)'>baidu</a> guide aims to provide the ground rules
+ for an application's JavaScript code, such that it's highly readable and consistent across different developers on a team. The focus is put on quality and coherence across the different pieces of your application.</p>
 
 
 <h1>Goal</h1>
 
 
+<p>These suggestions aren&#39;t set in stone, they aim to provide a baseline you can use in order to write more consistent codebases. To maximize effectiveness, share the styleguide among your co-workers and attempt to enforce it. Don&#39;t become obsessed about code style, as it&#39;d be fruitless and counterproductive. Try and find the sweet spot that makes everyone in the team comfortable developing for your codebase, while not feeling frustrated that their code always fails automated style checking because they added a single space where they weren&#39;t supposed to. It&#39;s a thin line, but since it&#39;s a very personal line I&#39;ll leave it to you to do the drawing.</p>
 
 
-
-<ol><li>Use together with <a herf='[32]'>bevacqua/css</a> for great good!</li></ol>
-
+<ol><li>Use together with <a href='[32]'>bevacqua/css</a> for great good!</li></ol>
 
 
+<p>Feel free to fork this style guide, or better yet, send <a href='[33]'>Pull Requests</a> this way!</p>
 
 
 <h1>Table of Contents</h1>
 
 
-<ol><li><a herf='(#modules)'>Modules</a>aaaa bbb
-ccc eee fff</li><li><a herf='(#strict-mode)'>Strict Mode</a></li><li><a herf='(#spacing)'>Spacing</a></li></ol>
+<ol><li><a href='(#modules)'>Modules</a>aaaa bbb
+ccc eee fff</li><li><a href='(#strict-mode)'>Strict Mode</a></li><li><a href='(#spacing)'>Spacing</a></li></ol>
 
 
-<ol><li><a herf='(#modules)'>Modules</a></li><li><a herf='(#strict-mode)'>Strict Mode</a></li><li><a herf='(#spacing)'>Spacing</a></li></ol>
+<ol><li><a href='(#modules)'>Modules</a></li><li><a href='(#strict-mode)'>Strict Mode</a></li><li><a href='(#spacing)'>Spacing</a></li></ol>
 
 
 <h1>Modules</h1>
 
 
+<p>This style guide assumes you're using a module system such as <a href='[1]'>CommonJS</a>, <a href='[2]'>AMD</a>, <a href='[3]'>ES6 Modules</a>, or any other kind of module system. Modules systems provide individual scoping, avoid leaks to the <code>global</code> object, and improve code base organization by <strong>automating dependency graph generation</strong>, instead of having to resort to manually creating multiple <code>&lt;script&gt;</code> tags.</p>
 
 
-
-
+<p>Module systems also provide us with dependency injection patterns, which are crucial when it comes to testing individual components in isolation.</p>
 
 
 <h1>Strict Mode</h1>
 
 
-
+<p><strong>Always</strong> put <a href='[4]'><code>&#39;use strict&#39;;</code></a> at the top of your modules. Strict mode allows you to catch nonsensical behavior, discourages poor practices, and <em>is faster</em> because it allows compilers to make certain assumptions about your code.</p>
 
 
 <h1>Spacing</h1>
 
 
-
+<p>Spacing must be consistent across every file in the application. To this end, using something like <a href='[5]'><code>.editorconfig</code></a> configuration files is highly encouraged. Here are the defaults I suggest to get started with JavaScript indentation.</p>
 
 
 <pre># editorconfig.org
@@ -73,7 +66,7 @@ indent_size = 2
 trim_trailing_whitespace = false</pre>
 
 
-
+<p>Settling for either tabs or spaces is up to the particularities of a project, but I recommend using 2 spaces for indentation. The <code>.editorconfig</code> file can take care of that for us and everyone would be able to create the correct spacing by pressing the tab key.</p>
 
 
 <pre>
@@ -85,12 +78,9 @@ nihao3
 </pre>
 
 
+<p>Spacing doesn't just entail tabbing, but also the spaces before, after, and in between arguments of a function declaration. This kind of spacing is <strong>typically highly irrelevant to get right</strong>, and it'll be hard for most teams to even arrive at a scheme that will satisfy everyone.</p>
 
 
 
 
 
-
-
-    </body>
-</html>

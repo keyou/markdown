@@ -150,6 +150,14 @@ function parse2Json(p) {
     return pa;
 }
 
+function escapeHTML( text ) {
+  return text.replace( /&/g, "&amp;" )
+             .replace( /</g, "&lt;" )
+             .replace( />/g, "&gt;" )
+             .replace( /"/g, "&quot;" )
+             .replace( /'/g, "&#39;" );
+}
+
 function parseHtml(datas) {
     var html = "";
     if(datas instanceof Array){
@@ -173,7 +181,7 @@ function parseHtml(datas) {
         }
     }
     else{
-        html = datas;
+        html = escapeHTML(datas);
     }
     return html;
 }
@@ -199,7 +207,8 @@ function json2Html(p) {
             html += "<pre>{0}</pre>".format(p.data);
             break;
         }
-        case "":{
+        case "plain":{
+            html += "<p>{0}</p>".format(parseHtml(p.data));
             break;
         }
         case "":{
@@ -239,6 +248,7 @@ function main(params) {
     for(var i = 0; i < jsons.length; i++){
         var json = jsons[i];
         html += json2Html(json) + "\n\n\n";
+        console.log(json);
     }
     fs.writeFileSync("rlt.html",html);
     console.log(html);
