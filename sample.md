@@ -10,6 +10,7 @@ JavaScript quality guide
 
 This style [baidu](http://baidu.com) guide aims to provide the ground rules
  for an application's JavaScript code, such that it's highly readable and consistent across different developers on a team. The focus is put on quality and coherence across the different pieces of your application.
+
 ![baidu](https://www.baidu.com/img/bd_logo1.png)
 
 ## Goal
